@@ -7,7 +7,7 @@
 
 #define M 13               
 #define maxNome 60
-#define maxCod 15
+#define maxCod 20
 int selectFuncaoHash = 0;
 
 typedef struct Produto {
@@ -63,9 +63,29 @@ char* removeCaracterEspecial(const char* cod) {
 }
 
 
-void tratamentoCodigo(char* cod) {
-    char* codTratado = removeCaracterEspecial(cod); 
+long int tratamentoCodigo(char* cod) {
+    char* codTratado = removeCaracterEspecial(cod);
+
+    char saida[maxCod];         
+    saida[0] = '\0';        
+
+    for (int i = 0; codTratado[i] != '\0'; i++) {
+        char c = codTratado[i];
+
+        if (isalpha((unsigned char)c)) {
+            char buffer[5];  
+            snprintf(buffer, sizeof(buffer), "%d", (int)c); 
+            if (strlen(saida) + strlen(buffer) < sizeof(saida))
+                strcat(saida, buffer);
+        } else {
+            char buffer[2] = {c, '\0'};  
+            if (strlen(saida) + 1 < sizeof(saida))
+                strcat(saida, buffer);
+        }
+    }
     
+    long int resultado = strtol(saida, NULL, 10);
+    return resultado;
 }
 
 
@@ -108,7 +128,8 @@ int main() {
                 printf("Digite o codigo da peca: ");
                 fgets(cod, sizeof(cod), stdin);
                 cod[strcspn(cod, "\n")] = '\0';
-                tratamentoCodigo(cod);
+                long int codTratado = tratamentoCodigo(cod);
+                printf("Codigo tratado: %ld\n", codTratado);
 
 
                 int quantEstoque;
