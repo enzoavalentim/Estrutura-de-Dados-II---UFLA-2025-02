@@ -5,7 +5,7 @@
 #include <ctype.h>
 
 
-#define M 13               
+#define M 8               
 #define maxNome 60
 #define maxCod 20
 int selectFuncaoHash = 0;
@@ -88,6 +88,22 @@ long int tratamentoCodigo(char* cod) {
     return resultado;
 }
 
+int calcHash(char* cod){
+    long int codTratado = tratamentoCodigo(cod);
+    
+    if (selectFuncaoHash == 0) {
+        double A = 0.618; 
+        double fracionaria = fmod(codTratado * A, 1.0);
+        int indice = (unsigned int)(M * fracionaria);
+        return indice;
+
+        
+    } else {
+        int indice = codTratado % M;
+        return indice;
+    }
+}
+
 
 int main() {
     setlocale(LC_ALL, "Portuguese_Brazil");
@@ -128,9 +144,8 @@ int main() {
                 printf("Digite o codigo da peca: ");
                 fgets(cod, sizeof(cod), stdin);
                 cod[strcspn(cod, "\n")] = '\0';
-                long int codTratado = tratamentoCodigo(cod);
-                printf("Codigo tratado: %ld\n", codTratado);
-
+                int indice = calcHash(cod);
+                printf("Indice calculado: %d\n", indice);
 
                 int quantEstoque;
                 printf("Digite a quantidade em estoque: ");
