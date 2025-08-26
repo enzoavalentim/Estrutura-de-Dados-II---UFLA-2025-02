@@ -5,7 +5,7 @@
 #include <ctype.h>
 
 
-#define M 8               
+#define M 101              
 #define maxNome 60
 #define maxCod 20
 int selectFuncaoHash = 0;
@@ -42,6 +42,39 @@ Produto* criarNovoProduto (const char* cod, const char* nome, int quantidade, do
     p->prox = NULL;
 
     return p;
+}
+
+void inserirNovoProduto(const char* cod, const char* nome, int quantidade, double preco, int indice) {
+    Produto* novoProd = tabelaHash[indice];
+
+    while (novoProd != NULL) {
+        if (novoProd->cod == cod) {
+            strncpy(novoProd->nome, nome, maxNome - 1);
+            novoProd->nome[maxNome - 1] = '\0';
+            return;
+        }
+        novoProd = novoProd->prox;
+    }
+
+    Produto* p = criarNovoProduto(cod, nome, quantidade, preco);
+    p->prox = tabelaHash[indice];
+    tabelaHash[indice] = p;
+}
+
+void imprimirHash() {
+    printf("\n--- ESTADO DA TABELA HASH ---\n");
+    for (int i = 0; i < M; i++) {
+        printf("[%2d]: ", i);
+        Produto* atual = tabelaHash[i];
+        if (!atual) {
+            printf("(vazio)");
+        }
+        while (atual) {
+            printf(" -> (Codigo:%s, Nome:%s)", atual->cod, atual->nome);
+            atual = atual->prox;
+        }
+        printf("\n");
+    }
 }
 
 void imprimirMenu(){
@@ -163,7 +196,6 @@ int main() {
                 fgets(cod, sizeof(cod), stdin);
                 cod[strcspn(cod, "\n")] = '\0';
                 int indice = calcHash(cod);
-                printf("Indice calculado: %d\n", indice);
 
                 int quantEstoque;
                 printf("Digite a quantidade em estoque: ");
@@ -173,7 +205,10 @@ int main() {
                 printf("Digite o preco unitario: ");                
                 scanf("%lf", &precoUnitario);
 
+                printf(cod);
 
+                inserirNovoProduto(cod, nome, quantEstoque, precoUnitario, indice);
+                imprimirHash();
 
                 break;
             }
