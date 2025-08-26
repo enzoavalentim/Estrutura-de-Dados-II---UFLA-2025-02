@@ -26,6 +26,24 @@ void inicializarTabela() {
     }
 }
 
+Produto* criarNovoProduto (const char* cod, const char* nome, int quantidade, double preco) {
+
+    Produto* p = (Produto*) malloc(sizeof(Produto));
+    if (p == NULL) {
+        return NULL;
+    }
+
+    strncpy(p->cod, cod, maxCod - 1);
+    p->cod[maxCod - 1] = '\0';
+    strncpy(p->nome, nome, maxNome - 1);
+    p->nome[maxNome - 1] = '\0';
+    p->quantidade = quantidade;
+    p->preco = preco;
+    p->prox = NULL;
+
+    return p;
+}
+
 void imprimirMenu(){
     printf("\n===========================================\n SISTEMA DE ESTOQUE - TECHPARTS\n===========================================\n");
     printf("\n");
