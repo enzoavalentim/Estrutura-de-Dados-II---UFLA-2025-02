@@ -44,25 +44,113 @@ Produto* criarNovoProduto (const char* cod, const char* nome, int quantidade, do
     return p;
 }
 
+char* removeCaracterEspecial(const char* cod) {
+    int len = strlen(cod);
+    char* tratada = malloc(len + 1); 
+    if (tratada == NULL) {
+        printf("Erro de alocação de memória.\n");
+        exit(1);
+    }
+
+    int j = 0;
+    for (int i = 0; i < len; i++) {
+        if (isalnum(cod[i])) { 
+            tratada[j++] = cod[i];
+        }
+    }
+    tratada[j] = '\0';
+
+    return tratada; 
+}
+
+long int tratamentoCodigo(char* cod) {
+    char* codTratado = removeCaracterEspecial(cod);
+
+    char saida[maxCod];         
+    saida[0] = '\0';        
+
+    for (int i = 0; codTratado[i] != '\0'; i++) {
+        char c = codTratado[i];
+
+        if (isalpha((unsigned char)c)) {
+            char buffer[5];  
+            snprintf(buffer, sizeof(buffer), "%d", (int)c); 
+            if (strlen(saida) + strlen(buffer) < sizeof(saida))
+                strcat(saida, buffer);
+        } else {
+            char buffer[2] = {c, '\0'};  
+            if (strlen(saida) + 1 < sizeof(saida))
+                strcat(saida, buffer);
+        }
+    }
+    
+    long int resultado = strtol(saida, NULL, 10);
+    return resultado;
+}
+
+int verificaProdutoExistente(const char* cod) {
+
+    long int codTratado = tratamentoCodigo(cod);
+    
+    //Verificando indice pela função de multiplicação
+    double A = 0.618; 
+    double fracionaria = fmod(codTratado * A, 1.0);
+    int indiceMulplicacao = (unsigned int)(M * fracionaria);
+    
+    //Verificando indice pela função de divisão
+    int indiceDivisao = codTratado % M;
+        
+
+    Produto* atualMultplicacao = tabelaHash[indiceMulplicacao];
+    Produto* atualDivisao = tabelaHash[indiceDivisao];
+
+    while (atualMultplicacao != NULL) {
+        if (strcmp(atualMultplicacao->cod, cod) == 0) {
+            return 1;  
+        }
+        atualMultplicacao = atualMultplicacao->prox;
+    }
+
+    while (atualDivisao != NULL) {
+        if (strcmp(atualDivisao->cod, cod) == 0) {
+            return 1;  
+        }
+        atualDivisao = atualDivisao->prox;
+    }
+
+    return 0;  
+}
+
 void inserirNovoProduto(const char* cod, const char* nome, int quantidade, double preco, int indice) {
     if (indice < 0 || indice >= M) {
         fprintf(stderr, "Erro: indice de hash fora do intervalo (%d)\n", indice);
         return;
     }
 
-    Produto* novoProd = tabelaHash[indice];
-
-    while (novoProd != NULL) {
-        if (strcmp(novoProd->cod, cod) == 0) {
+    int prodJacadastrado = verificaProdutoExistente(cod);
+    if (prodJacadastrado == 1) {
         printf("Código %s já cadastrado. Volte ao cadastro de peças e tente novamente.\n", cod);
-            return;    
-        }
-        novoProd = novoProd->prox;
+        return;
     }
 
     Produto* p = criarNovoProduto(cod, nome, quantidade, preco);
     p->prox = tabelaHash[indice];
     tabelaHash[indice] = p;
+}
+
+void buscarProduto(const char* cod) {
+    int indice = calcHash(cod);
+    Produto* atual = tabelaHash[indice];
+
+    while (atual != NULL) {
+        if (strcmp(atual->cod, cod) == 0) {
+            printf("\nProduto encontrado: \nCodigo: %s \nNome: %s \nQuantidade: %d \nPreco: %.2f\n", atual->cod, atual->nome, atual->quantidade, atual->preco);
+            return;
+        }
+        atual = atual->prox;
+    }
+    printf("\nProduto com codigo %s nao encontrado.\n", cod);
+    return;
 }
 
 void imprimirHash() {
@@ -98,50 +186,6 @@ void imprimirMenu(){
     printf("\nDigite a opcao desejada:");
 }
 
-char* removeCaracterEspecial(const char* cod) {
-    int len = strlen(cod);
-    char* tratada = malloc(len + 1); 
-    if (tratada == NULL) {
-        printf("Erro de alocação de memória.\n");
-        exit(1);
-    }
-
-    int j = 0;
-    for (int i = 0; i < len; i++) {
-        if (isalnum(cod[i])) { 
-            tratada[j++] = cod[i];
-        }
-    }
-    tratada[j] = '\0';
-
-    return tratada; 
-}
-
-
-long int tratamentoCodigo(char* cod) {
-    char* codTratado = removeCaracterEspecial(cod);
-
-    char saida[maxCod];         
-    saida[0] = '\0';        
-
-    for (int i = 0; codTratado[i] != '\0'; i++) {
-        char c = codTratado[i];
-
-        if (isalpha((unsigned char)c)) {
-            char buffer[5];  
-            snprintf(buffer, sizeof(buffer), "%d", (int)c); 
-            if (strlen(saida) + strlen(buffer) < sizeof(saida))
-                strcat(saida, buffer);
-        } else {
-            char buffer[2] = {c, '\0'};  
-            if (strlen(saida) + 1 < sizeof(saida))
-                strcat(saida, buffer);
-        }
-    }
-    
-    long int resultado = strtol(saida, NULL, 10);
-    return resultado;
-}
 
 int calcHash(char* cod){
     long int codTratado = tratamentoCodigo(cod);
@@ -267,8 +311,6 @@ int main() {
                 break;
                 }
 
-                printf(cod);
-
                 inserirNovoProduto(cod, nome, quantEstoque, precoUnitario, indice);
                 imprimirHash();
 
@@ -276,6 +318,13 @@ int main() {
             }
             case 2: {
                 printf("\n======================\n BUSCA DE PECA\n======================\n");
+
+                char cod[maxCod];
+                printf("Digite o codigo da peca: ");
+                fgets(cod, sizeof(cod), stdin);
+                cod[strcspn(cod, "\n")] = '\0';
+                int indice = calcHash(cod);
+                buscarProduto(cod);
                 break;
             }
             case 3: {
