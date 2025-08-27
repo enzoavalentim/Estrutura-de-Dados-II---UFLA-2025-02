@@ -45,13 +45,17 @@ Produto* criarNovoProduto (const char* cod, const char* nome, int quantidade, do
 }
 
 void inserirNovoProduto(const char* cod, const char* nome, int quantidade, double preco, int indice) {
+    if (indice < 0 || indice >= M) {
+        fprintf(stderr, "Erro: indice de hash fora do intervalo (%d)\n", indice);
+        return;
+    }
+
     Produto* novoProd = tabelaHash[indice];
 
     while (novoProd != NULL) {
-        if (novoProd->cod == cod) {
-            strncpy(novoProd->nome, nome, maxNome - 1);
-            novoProd->nome[maxNome - 1] = '\0';
-            return;
+        if (strcmp(novoProd->cod, cod) == 0) {
+        printf("Código %s já cadastrado. Volte ao cadastro de peças e tente novamente.\n", cod);
+            return;    
         }
         novoProd = novoProd->prox;
     }
@@ -261,17 +265,33 @@ int main() {
             case 7: {
                 printf("\n======================\n TROCAR FUNCAO DE HASH\n======================\n");
 
+                int novaFuncao;
+                int leituraValida;
+
                 printf("Selecione a funcao de hash desejada:\n");
                 printf("[0] Multiplicacao\n");
                 printf("[1] Divisao\n");
 
-                int novaFuncao;
-                printf("Digite a quantidade em estoque: ");
-                scanf("%d", &novaFuncao);
+                while (1) {
+                    printf("Digite a opcao desejada: ");
+                    leituraValida = scanf("%d", &novaFuncao);
+
+                    if (leituraValida != 1) {
+                        printf("Entrada invalida! Digite um numero inteiro.\n");
+                        while (getchar() != '\n');
+                        continue;
+                    }
+
+                    if (novaFuncao < 0 || novaFuncao > 1) {
+                        printf("Opcao invalida! Digite 0 ou 1.\n");
+                        continue;
+                    }
+
+                    break;
+                }
 
                 selectFuncaoHash = novaFuncao;
-                printf("Funcao de hash alterada com sucesso!\n");
-                
+                printf("Funcao de hash alterada com sucesso! (%d)\n", selectFuncaoHash);
                 break;
             }
             case 8:
