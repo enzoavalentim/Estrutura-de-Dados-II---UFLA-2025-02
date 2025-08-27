@@ -155,6 +155,32 @@ int calcHash(char* cod){
     }
 }
 
+void reHash(){
+
+}
+
+double fatorDeCarga() {
+    int n = 0;
+    for (int i = 0; i < M; i++) {
+        Produto* atual = tabelaHash[i];
+        while (atual) {
+            n++;
+            atual = atual->prox;
+        }
+    }
+
+    double carga = (double)n / (double)M;
+
+    if (carga > 0.75) {
+        printf("Fator de carga: %.2f - Rehash necessario!\n", carga);
+        reHash();
+    } else {
+        printf("Fator de carga: %.2f\n", carga);
+    }
+    return carga;
+
+
+}
 
 int main() {
     setlocale(LC_ALL, "Portuguese_Brazil");
