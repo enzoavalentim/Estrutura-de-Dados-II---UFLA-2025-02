@@ -121,6 +121,64 @@ int verificaProdutoExistente(const char* cod) {
     return 0;  
 }
 
+void excluirProduto(const char* cod) {
+    if (cod == NULL) {
+        printf("Codigo invalido!\n");
+        return;
+    }
+
+    long int codTratado = tratamentoCodigo(cod);
+
+    double A = 0.618; 
+    double fracionaria = fmod(codTratado * A, 1.0);
+    int indiceMultiplicacao = (unsigned int)(M * fracionaria);
+
+    int indiceDivisao = codTratado % M;
+
+    Produto *atual, *anterior;
+    int removido = 0;
+
+    atual = tabelaHash[indiceMultiplicacao];
+    anterior = NULL;
+    while (atual != NULL) {
+        if (strcmp(atual->cod, cod) == 0) {
+            if (anterior == NULL)
+                tabelaHash[indiceMultiplicacao] = atual->prox;
+            else
+                anterior->prox = atual->prox;
+
+            free(atual);
+            printf("Produto %s removido (bucket multiplicacao).\n", cod);
+            removido = 1;
+            break;
+        }
+        anterior = atual;
+        atual = atual->prox;
+    }
+
+    atual = tabelaHash[indiceDivisao];
+    anterior = NULL;
+    while (atual != NULL) {
+        if (strcmp(atual->cod, cod) == 0) {
+            if (anterior == NULL)
+                tabelaHash[indiceDivisao] = atual->prox;
+            else
+                anterior->prox = atual->prox;
+
+            free(atual);
+            printf("Produto %s removido (bucket divisao).\n", cod);
+            removido = 1;
+            break;
+        }
+        anterior = atual;
+        atual = atual->prox;
+    }
+
+    if (!removido) {
+        printf("Produto %s nao encontrado na tabela.\n", cod);
+    }
+}
+
 void inserirNovoProduto(const char* cod, const char* nome, int quantidade, double preco, int indice) {
     if (indice < 0 || indice >= M) {
         fprintf(stderr, "Erro: indice de hash fora do intervalo (%d)\n", indice);
@@ -297,7 +355,7 @@ int main() {
                 printf("Digite o preco unitario: ");
                 leituraValida = scanf("%lf", &precoUnitario);
 
-                if (leituraValida != 1) {
+                if (leituraValida != 1) {+
                     printf("Entrada invalida! Digite um numero decimal.\n");
                     while (getchar() != '\n'); 
                     continue;
@@ -323,12 +381,17 @@ int main() {
                 printf("Digite o codigo da peca: ");
                 fgets(cod, sizeof(cod), stdin);
                 cod[strcspn(cod, "\n")] = '\0';
-                int indice = calcHash(cod);
                 buscarProduto(cod);
                 break;
             }
             case 3: {
                 printf("\n======================\n REMOCAO DE PECA\n======================\n");
+
+                char cod[maxCod];
+                printf("Digite o codigo da peca: ");
+                fgets(cod, sizeof(cod), stdin);
+                cod[strcspn(cod, "\n")] = '\0';
+                excluirProduto(cod);
                 break;
             }
             case 4: {
