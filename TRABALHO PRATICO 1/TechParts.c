@@ -228,12 +228,44 @@ int main() {
                 int indice = calcHash(cod);
 
                 int quantEstoque;
-                printf("Digite a quantidade em estoque: ");
-                scanf("%d", &quantEstoque);
-
                 double precoUnitario;
-                printf("Digite o preco unitario: ");                
-                scanf("%lf", &precoUnitario);
+                int leituraValida;
+
+                while (1) {
+                printf("Digite a quantidade em estoque: ");
+                leituraValida = scanf("%d", &quantEstoque);
+
+                if (leituraValida != 1) {
+                    printf("Entrada invalida! Digite um numero inteiro.\n");
+                    while (getchar() != '\n'); 
+                    continue;
+                }
+
+                if (quantEstoque < 0) {
+                    printf("A quantidade nao pode ser negativa.\n");
+                    continue;
+                }
+
+                break;
+                }
+
+                while (1) {
+                printf("Digite o preco unitario: ");
+                leituraValida = scanf("%lf", &precoUnitario);
+
+                if (leituraValida != 1) {
+                    printf("Entrada invalida! Digite um numero decimal.\n");
+                    while (getchar() != '\n'); 
+                    continue;
+                }
+
+                if (precoUnitario < 0) {
+                    printf("O preco nao pode ser negativo.\n");
+                    continue;
+                }
+
+                break;
+                }
 
                 printf(cod);
 
