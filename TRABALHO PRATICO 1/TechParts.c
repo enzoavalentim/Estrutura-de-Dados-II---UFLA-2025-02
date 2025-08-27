@@ -260,6 +260,18 @@ int main() {
             }
             case 7: {
                 printf("\n======================\n TROCAR FUNCAO DE HASH\n======================\n");
+
+                printf("Selecione a funcao de hash desejada:\n");
+                printf("[0] Multiplicacao\n");
+                printf("[1] Divisao\n");
+
+                int novaFuncao;
+                printf("Digite a quantidade em estoque: ");
+                scanf("%d", &novaFuncao);
+
+                selectFuncaoHash = novaFuncao;
+                printf("Funcao de hash alterada com sucesso!\n");
+                
                 break;
             }
             case 8:
