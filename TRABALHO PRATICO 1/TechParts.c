@@ -197,18 +197,38 @@ void inserirNovoProduto(const char* cod, const char* nome, int quantidade, doubl
 }
 
 void buscarProduto(const char* cod) {
-    int indice = calcHash(cod);
-    Produto* atual = tabelaHash[indice];
 
-    while (atual != NULL) {
-        if (strcmp(atual->cod, cod) == 0) {
-            printf("\nProduto encontrado: \nCodigo: %s \nNome: %s \nQuantidade: %d \nPreco: %.2f\n", atual->cod, atual->nome, atual->quantidade, atual->preco);
-            return;
+        long int codTratado = tratamentoCodigo(cod);
+    
+    //Verificando indice pela função de multiplicação
+    double A = 0.618; 
+    double fracionaria = fmod(codTratado * A, 1.0);
+    int indiceMulplicacao = (unsigned int)(M * fracionaria);
+    
+    //Verificando indice pela função de divisão
+    int indiceDivisao = codTratado % M;
+        
+
+    Produto* atualMultplicacao = tabelaHash[indiceMulplicacao];
+    Produto* atualDivisao = tabelaHash[indiceDivisao];
+
+    while (atualMultplicacao != NULL) {
+        if (strcmp(atualMultplicacao->cod, cod) == 0) {
+            printf("\nProduto encontrado: \nCodigo: %s \nNome: %s \nQuantidade: %d \nPreco: %.2f\n", atualMultplicacao->cod, atualMultplicacao->nome, atualMultplicacao->quantidade, atualMultplicacao->preco);
+            return ;
         }
-        atual = atual->prox;
+        atualMultplicacao = atualMultplicacao->prox;
     }
-    printf("\nProduto com codigo %s nao encontrado.\n", cod);
-    return;
+
+    while (atualDivisao != NULL) {
+        if (strcmp(atualDivisao->cod, cod) == 0) {
+            printf("\nProduto encontrado: \nCodigo: %s \nNome: %s \nQuantidade: %d \nPreco: %.2f\n", atualDivisao->cod, atualDivisao->nome, atualDivisao->quantidade, atualDivisao->preco);
+            return;  
+        }
+        atualDivisao = atualDivisao->prox;
+    }
+
+    printf("Produto %s nao encontrado na tabela.\n", cod);
 }
 
 void imprimirHash() {
