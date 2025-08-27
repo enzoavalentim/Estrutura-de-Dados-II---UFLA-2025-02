@@ -187,13 +187,14 @@ void inserirNovoProduto(const char* cod, const char* nome, int quantidade, doubl
 
     int prodJacadastrado = verificaProdutoExistente(cod);
     if (prodJacadastrado == 1) {
-        printf("C�digo %s j� cadastrado. Volte ao cadastro de pe�as e tente novamente.\n", cod);
+        printf("Codigo %s ja cadastrado. Volte ao cadastro de pecas e tente novamente.\n", cod);
         return;
     }
 
     Produto* p = criarNovoProduto(cod, nome, quantidade, preco);
     p->prox = tabelaHash[indice];
     tabelaHash[indice] = p;
+    printf("\nProduto %s inserido com sucesso!.\n", cod);
 }
 
 void buscarProduto(const char* cod) {
@@ -350,6 +351,36 @@ void reHash(){
 
 }
 
+void importarDeCSV(char* nomeArquivo){
+
+    FILE *arquivo = fopen(nomeArquivo, "r");
+    if (arquivo == NULL) {
+        printf("Erro ao abrir o arquivo.\n");
+        exit(-1);
+    }
+
+    char linha[256];
+
+    fgets(linha, sizeof(linha), arquivo);
+
+    while (fgets(linha, sizeof(linha), arquivo) != NULL) {
+        linha[strcspn(linha, "\n")] = '\0';
+
+        char *codigo    = strtok(linha, ";");
+        char *descricao = strtok(NULL, ";");
+        char *qtde      = strtok(NULL, ";");
+        char *preco     = strtok(NULL, ";");
+
+        if (codigo && descricao && qtde && preco) {
+           int indice = calcHash(codigo);
+           inserirNovoProduto(codigo, descricao, atoi(qtde), atof(preco), indice);
+        }
+    }
+
+    fclose(arquivo);
+    return 0;
+}
+
 
 int main() {
     setlocale(LC_ALL, "Portuguese_Brazil");
@@ -433,7 +464,6 @@ int main() {
                 }
 
                 inserirNovoProduto(cod, nome, quantEstoque, precoUnitario, indice);
-                imprimirHash();
 
                 break;
             }
@@ -459,11 +489,20 @@ int main() {
             }
             case 4: {
                 printf("\n======================\n EXIBIR ESTATISTICAS\n======================\n");
+
                 estatiticasTabela();
                 break;
             }
             case 5: {
                 printf("\n======================\n CARREGAR PECAS POR CSV\n======================\n");
+                
+                printf("Digite o nome do arquivo que deseja importar: ");
+                printf("\n*OBS: O arquivo deve estar no mesmo diretorio do executavel e o nome padrao csv com cabeçalho {codigo;descricao;qtde;preco}\n");
+                printf("\nDigite o nome do arquivo (ex: produtosTechParts.csv): ");
+                char *nomeArquivo = malloc(100 * sizeof(char));
+                fgets(nomeArquivo, 100, stdin);
+                nomeArquivo[strcspn(nomeArquivo, "\n")] = '\0'; 
+                importarDeCSV(nomeArquivo);
                 break;
             }
             case 6: {
