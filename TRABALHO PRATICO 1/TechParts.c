@@ -48,7 +48,7 @@ char* removeCaracterEspecial(const char* cod) {
     int len = strlen(cod);
     char* tratada = malloc(len + 1); 
     if (tratada == NULL) {
-        printf("Erro de alocação de memória.\n");
+        printf("Erro de alocaï¿½ï¿½o de memï¿½ria.\n");
         exit(1);
     }
 
@@ -92,12 +92,12 @@ int verificaProdutoExistente(const char* cod) {
 
     long int codTratado = tratamentoCodigo(cod);
     
-    //Verificando indice pela função de multiplicação
+    //Verificando indice pela funï¿½ï¿½o de multiplicaï¿½ï¿½o
     double A = 0.618; 
     double fracionaria = fmod(codTratado * A, 1.0);
     int indiceMulplicacao = (unsigned int)(M * fracionaria);
     
-    //Verificando indice pela função de divisão
+    //Verificando indice pela funï¿½ï¿½o de divisï¿½o
     int indiceDivisao = codTratado % M;
         
 
@@ -187,7 +187,7 @@ void inserirNovoProduto(const char* cod, const char* nome, int quantidade, doubl
 
     int prodJacadastrado = verificaProdutoExistente(cod);
     if (prodJacadastrado == 1) {
-        printf("Código %s já cadastrado. Volte ao cadastro de peças e tente novamente.\n", cod);
+        printf("Cï¿½digo %s jï¿½ cadastrado. Volte ao cadastro de peï¿½as e tente novamente.\n", cod);
         return;
     }
 
@@ -198,14 +198,14 @@ void inserirNovoProduto(const char* cod, const char* nome, int quantidade, doubl
 
 void buscarProduto(const char* cod) {
 
-        long int codTratado = tratamentoCodigo(cod);
+    long int codTratado = tratamentoCodigo(cod);
     
-    //Verificando indice pela função de multiplicação
+    //Verificando indice pela funcao de multiplicacao
     double A = 0.618; 
     double fracionaria = fmod(codTratado * A, 1.0);
     int indiceMulplicacao = (unsigned int)(M * fracionaria);
     
-    //Verificando indice pela função de divisão
+    //Verificando indice pela funcao de divisao
     int indiceDivisao = codTratado % M;
         
 
@@ -281,10 +281,6 @@ int calcHash(char* cod){
     }
 }
 
-void reHash(){
-
-}
-
 double fatorDeCarga() {
     int n = 0;
     for (int i = 0; i < M; i++) {
@@ -303,10 +299,57 @@ double fatorDeCarga() {
     } else {
         printf("Fator de carga: %.2f\n", carga);
     }
+
     return carga;
 
 
 }
+
+void estatiticasTabela() {
+    printf("\nTamanho da tabela (m): %d\n", M);
+
+    int n = 0;
+    for (int i = 0; i < M; i++) {
+        Produto* atual = tabelaHash[i];
+        while (atual) {
+            n++;
+            atual = atual->prox;
+        }
+    }
+    printf("Numero de elementos (n): %d\n", n);
+
+    fatorDeCarga(); 
+
+    int bucketsUtilizados = 0;
+    int bucketMaisCheio = -1;
+    int maiorTamanho = 0;
+
+    for (int i = 0; i < M; i++) {
+        Produto* atual = tabelaHash[i];
+
+        if (atual != NULL) {
+            bucketsUtilizados++;
+        }
+
+        int tamanhoAtual = 0; 
+        while (atual) {
+            tamanhoAtual++;
+            atual = atual->prox;
+        }
+
+        if (tamanhoAtual > maiorTamanho) {
+            maiorTamanho = tamanhoAtual;
+            bucketMaisCheio = i;
+        }
+    }
+    printf("Numero de buckets utilizados: %d (%.2lf%%)\n", bucketsUtilizados, (bucketsUtilizados * 100) / (M * 1.0));
+    printf("Maior lista (colisoes): %d\n", maiorTamanho);
+}
+
+void reHash(){
+
+}
+
 
 int main() {
     setlocale(LC_ALL, "Portuguese_Brazil");
@@ -416,6 +459,7 @@ int main() {
             }
             case 4: {
                 printf("\n======================\n EXIBIR ESTATISTICAS\n======================\n");
+                estatiticasTabela();
                 break;
             }
             case 5: {
