@@ -4,7 +4,6 @@
 #include <locale.h>
 #include <ctype.h>
 
-
 #define M 101              
 #define maxNome 60
 #define maxCod 20
@@ -48,7 +47,7 @@ char* removeCaracterEspecial(const char* cod) {
     int len = strlen(cod);
     char* tratada = malloc(len + 1); 
     if (tratada == NULL) {
-        printf("Erro de aloca��o de mem�ria.\n");
+        printf("Erro de alocacao de memoria.\n");
         exit(1);
     }
 
@@ -92,12 +91,10 @@ int verificaProdutoExistente(const char* cod) {
 
     long int codTratado = tratamentoCodigo(cod);
     
-    //Verificando indice pela fun��o de multiplica��o
     double A = 0.618; 
     double fracionaria = fmod(codTratado * A, 1.0);
     int indiceMulplicacao = (unsigned int)(M * fracionaria);
     
-    //Verificando indice pela fun��o de divis�o
     int indiceDivisao = codTratado % M;
         
 
@@ -201,12 +198,10 @@ void buscarProduto(const char* cod) {
 
     long int codTratado = tratamentoCodigo(cod);
     
-    //Verificando indice pela funcao de multiplicacao
     double A = 0.618; 
     double fracionaria = fmod(codTratado * A, 1.0);
     int indiceMulplicacao = (unsigned int)(M * fracionaria);
-    
-    //Verificando indice pela funcao de divisao
+
     int indiceDivisao = codTratado % M;
         
 
@@ -355,8 +350,8 @@ void importarDeCSV(char* nomeArquivo){
 
     FILE *arquivo = fopen(nomeArquivo, "r");
     if (arquivo == NULL) {
-        printf("Erro ao abrir o arquivo.\n");
-        exit(-1);
+        printf("Erro ao abrir o arquivo.\nVerifique se o nome do arquivo esta correto e tente novamente.\n");
+        return;
     }
 
     char linha[256];
@@ -379,6 +374,35 @@ void importarDeCSV(char* nomeArquivo){
 
     fclose(arquivo);
     return 0;
+}
+
+void exportarParaCSV(const char* nomeArquivo){
+
+    FILE* arquivo = fopen(nomeArquivo, "w");
+    if (!arquivo) {
+        printf("Erro ao abrir o arquivo %s\n", nomeArquivo);
+        return;
+    }
+
+    fprintf(arquivo, "codigo;descricao;qtde;preco\n");
+
+    for (int i = 0; i < M; i++) {
+        Produto* atual = tabelaHash[i];
+        while (atual) {
+           
+            fprintf(arquivo, "%s;%s;%d;%.2f\n",
+                    atual->cod,
+                    atual->nome,
+                    atual->quantidade,
+                    atual->preco);
+            atual = atual->prox;
+        }
+    }
+
+    fclose(arquivo);
+    printf("Exportacao concluida no mesmo diretorio do executavel, arquivo: %s!\n", nomeArquivo);
+
+
 }
 
 
@@ -495,7 +519,7 @@ int main() {
             }
             case 5: {
                 printf("\n======================\n CARREGAR PECAS POR CSV\n======================\n");
-                
+
                 printf("Digite o nome do arquivo que deseja importar: ");
                 printf("\n*OBS: O arquivo deve estar no mesmo diretorio do executavel e o nome padrao csv com cabeçalho {codigo;descricao;qtde;preco}\n");
                 printf("\nDigite o nome do arquivo (ex: produtosTechParts.csv): ");
@@ -507,6 +531,8 @@ int main() {
             }
             case 6: {
                 printf("\n======================\n SALVAR TABELA EM CSV\n======================\n");
+
+                exportarParaCSV("tabelaTechParts.csv");
                 break;
             }
             case 7: {
