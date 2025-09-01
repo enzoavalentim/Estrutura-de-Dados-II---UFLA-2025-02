@@ -3,11 +3,11 @@
 #include <string.h>
 #include <locale.h>
 #include <ctype.h>
-
-#define M 101              
+            
 #define maxNome 60
 #define maxCod 20
 int selectFuncaoHash = 0;
+int M = 101;  
 
 typedef struct Produto {
     char cod[maxCod];                
@@ -16,14 +16,6 @@ typedef struct Produto {
     double preco;
     struct No* prox;
 } Produto;
-
-Produto* tabelaHash[M];
-
-void inicializarTabela() {
-    for (int i = 0; i < M; i++) {
-        tabelaHash[i] = NULL;
-    }
-}
 
 Produto* criarNovoProduto (const char* cod, const char* nome, int quantidade, double preco) {
 
@@ -87,7 +79,7 @@ long int tratamentoCodigo(char* cod) {
     return resultado;
 }
 
-int verificaProdutoExistente(const char* cod) {
+int verificaProdutoExistente(const char* cod, int M, Produto* tabelaHash[]) {
 
     long int codTratado = tratamentoCodigo(cod);
     
@@ -118,7 +110,7 @@ int verificaProdutoExistente(const char* cod) {
     return 0;  
 }
 
-void excluirProduto(const char* cod) {
+void excluirProduto(const char* cod, int M, Produto* tabelaHash[]) {
     if (cod == NULL) {
         printf("Codigo invalido!\n");
         return;
@@ -126,44 +118,23 @@ void excluirProduto(const char* cod) {
 
     long int codTratado = tratamentoCodigo(cod);
 
-    double A = 0.618; 
-    double fracionaria = fmod(codTratado * A, 1.0);
-    int indiceMultiplicacao = (unsigned int)(M * fracionaria);
 
-    int indiceDivisao = codTratado % M;
+    int indice = calcHash(cod, M);
 
     Produto *atual, *anterior;
     int removido = 0;
 
-    atual = tabelaHash[indiceMultiplicacao];
+    atual = tabelaHash[indice];
     anterior = NULL;
     while (atual != NULL) {
         if (strcmp(atual->cod, cod) == 0) {
             if (anterior == NULL)
-                tabelaHash[indiceMultiplicacao] = atual->prox;
+                tabelaHash[indice] = atual->prox;
             else
                 anterior->prox = atual->prox;
 
             free(atual);
-            printf("Produto %s removido (bucket multiplicacao).\n", cod);
-            removido = 1;
-            break;
-        }
-        anterior = atual;
-        atual = atual->prox;
-    }
-
-    atual = tabelaHash[indiceDivisao];
-    anterior = NULL;
-    while (atual != NULL) {
-        if (strcmp(atual->cod, cod) == 0) {
-            if (anterior == NULL)
-                tabelaHash[indiceDivisao] = atual->prox;
-            else
-                anterior->prox = atual->prox;
-
-            free(atual);
-            printf("Produto %s removido (bucket divisao).\n", cod);
+            printf("Produto %s removido.\n", cod);
             removido = 1;
             break;
         }
@@ -176,13 +147,13 @@ void excluirProduto(const char* cod) {
     }
 }
 
-void inserirNovoProduto(const char* cod, const char* nome, int quantidade, double preco, int indice) {
+void inserirNovoProduto(const char* cod, const char* nome, int quantidade, double preco, int indice, int M, Produto* tabelaHash[]) {
     if (indice < 0 || indice >= M) {
         fprintf(stderr, "Erro: indice de hash fora do intervalo (%d)\n", indice);
         return;
     }
 
-    int prodJacadastrado = verificaProdutoExistente(cod);
+    int prodJacadastrado = verificaProdutoExistente(cod, M, tabelaHash);
     if (prodJacadastrado == 1) {
         printf("Codigo %s ja cadastrado. Volte ao cadastro de pecas e tente novamente.\n", cod);
         return;
@@ -192,42 +163,32 @@ void inserirNovoProduto(const char* cod, const char* nome, int quantidade, doubl
     p->prox = tabelaHash[indice];
     tabelaHash[indice] = p;
     printf("\nProduto %s inserido com sucesso!.\n", cod);
+
+    
 }
 
-void buscarProduto(const char* cod) {
+void buscarProduto(const char* cod, int M, Produto* tabelaHash[]) {
 
     long int codTratado = tratamentoCodigo(cod);
     
-    double A = 0.618; 
-    double fracionaria = fmod(codTratado * A, 1.0);
-    int indiceMulplicacao = (unsigned int)(M * fracionaria);
 
-    int indiceDivisao = codTratado % M;
+    int indice = calcHash(cod, M);
         
 
-    Produto* atualMultplicacao = tabelaHash[indiceMulplicacao];
-    Produto* atualDivisao = tabelaHash[indiceDivisao];
+    Produto* atual = tabelaHash[indice];
 
-    while (atualMultplicacao != NULL) {
-        if (strcmp(atualMultplicacao->cod, cod) == 0) {
-            printf("\nProduto encontrado: \nCodigo: %s \nNome: %s \nQuantidade: %d \nPreco: %.2f\n", atualMultplicacao->cod, atualMultplicacao->nome, atualMultplicacao->quantidade, atualMultplicacao->preco);
+    while (atual != NULL) {
+        if (strcmp(atual->cod, cod) == 0) {
+            printf("\nProduto encontrado: \nCodigo: %s \nNome: %s \nQuantidade: %d \nPreco: %.2f\n", atual->cod, atual->nome, atual->quantidade, atual->preco);
             return ;
         }
-        atualMultplicacao = atualMultplicacao->prox;
-    }
-
-    while (atualDivisao != NULL) {
-        if (strcmp(atualDivisao->cod, cod) == 0) {
-            printf("\nProduto encontrado: \nCodigo: %s \nNome: %s \nQuantidade: %d \nPreco: %.2f\n", atualDivisao->cod, atualDivisao->nome, atualDivisao->quantidade, atualDivisao->preco);
-            return;  
-        }
-        atualDivisao = atualDivisao->prox;
+        atual = atual->prox;
     }
 
     printf("Produto %s nao encontrado na tabela.\n", cod);
 }
 
-void imprimirHash() {
+void imprimirHash(int M, Produto* tabelaHash[]) {
     printf("\n--- ESTADO DA TABELA HASH ---\n");
     for (int i = 0; i < M; i++) {
         printf("[%2d]: ", i);
@@ -261,7 +222,7 @@ void imprimirMenu(){
 }
 
 
-int calcHash(char* cod){
+int calcHash(char* cod, int M){
     long int codTratado = tratamentoCodigo(cod);
     
     if (selectFuncaoHash == 0) {
@@ -277,7 +238,7 @@ int calcHash(char* cod){
     }
 }
 
-double fatorDeCarga() {
+double fatorDeCarga(int M, Produto* tabelaHash[]) {
     int n = 0;
     for (int i = 0; i < M; i++) {
         Produto* atual = tabelaHash[i];
@@ -290,8 +251,8 @@ double fatorDeCarga() {
     double carga = (double)n / (double)M;
 
     if (carga > 0.75) {
-        printf("Fator de carga: %.2f - Rehash necessario!\n", carga);
-        reHash();
+        printf("Fator de carga: %.2f - Fazendo Rehash Completo! \n", carga);
+        reHashCompleto(selectFuncaoHash);
     } else {
         printf("Fator de carga: %.2f\n", carga);
     }
@@ -301,7 +262,7 @@ double fatorDeCarga() {
 
 }
 
-void estatiticasTabela() {
+void estatiticasTabela(int M, Produto* tabelaHash[]) {
     printf("\nTamanho da tabela (m): %d\n", M);
 
     int n = 0;
@@ -314,7 +275,7 @@ void estatiticasTabela() {
     }
     printf("Numero de elementos (n): %d\n", n);
 
-    fatorDeCarga(); 
+    fatorDeCarga(M, tabelaHash); 
 
     int bucketsUtilizados = 0;
     int bucketMaisCheio = -1;
@@ -342,11 +303,17 @@ void estatiticasTabela() {
     printf("Maior lista (colisoes): %d\n", maiorTamanho);
 }
 
-void reHash(){
+void reHashSimples(int selectFuncaoHashNovo, int M, Produto* tabelaHash[]) {
+
+    fatorDeCarga(M, tabelaHash); 
 
 }
 
-void importarDeCSV(char* nomeArquivo){
+void reHashCompleto(int selectFuncaoHashNovo){
+
+}
+
+void importarDeCSV(char* nomeArquivo, int M, Produto* tabelaHash[]) {
 
     FILE *arquivo = fopen(nomeArquivo, "r");
     if (arquivo == NULL) {
@@ -367,16 +334,18 @@ void importarDeCSV(char* nomeArquivo){
         char *preco     = strtok(NULL, ";");
 
         if (codigo && descricao && qtde && preco) {
-           int indice = calcHash(codigo);
-           inserirNovoProduto(codigo, descricao, atoi(qtde), atof(preco), indice);
+           int indice = calcHash(codigo, M);
+           inserirNovoProduto(codigo, descricao, atoi(qtde), atof(preco), indice, M, tabelaHash);
         }
     }
 
     fclose(arquivo);
+
+    imprimirHash(M, tabelaHash);
     return 0;
 }
 
-void exportarParaCSV(const char* nomeArquivo){
+void exportarParaCSV(const char* nomeArquivo, int M, Produto* tabelaHash[]) {
 
     FILE* arquivo = fopen(nomeArquivo, "w");
     if (!arquivo) {
@@ -405,14 +374,28 @@ void exportarParaCSV(const char* nomeArquivo){
 
 }
 
+Produto** criarHash(int M) {
+    Produto** tabelaHash = malloc(M * sizeof(Produto*));
+    if (tabelaHash == NULL) {
+        printf("Erro de alocação!\n");
+        exit(1);
+    }
+
+    for (int i = 0; i < M; i++) {
+        tabelaHash[i] = NULL; 
+    }
+
+    return tabelaHash;
+}
+
+
 
 int main() {
     setlocale(LC_ALL, "Portuguese_Brazil");
 
-    inicializarTabela();
-
     int opcao;
     int resultado;
+    Produto** tabelaHash = criarHash(M);
 
     do {
         imprimirMenu();
@@ -445,7 +428,7 @@ int main() {
                 printf("Digite o codigo da peca: ");
                 fgets(cod, sizeof(cod), stdin);
                 cod[strcspn(cod, "\n")] = '\0';
-                int indice = calcHash(cod);
+                int indice = calcHash(cod, M);
 
                 int quantEstoque;
                 double precoUnitario;
@@ -487,8 +470,8 @@ int main() {
                 break;
                 }
 
-                inserirNovoProduto(cod, nome, quantEstoque, precoUnitario, indice);
-
+                inserirNovoProduto(cod, nome, quantEstoque, precoUnitario, indice, M, tabelaHash);
+                imprimirHash(M, tabelaHash);
                 break;
             }
             case 2: {
@@ -498,7 +481,7 @@ int main() {
                 printf("Digite o codigo da peca: ");
                 fgets(cod, sizeof(cod), stdin);
                 cod[strcspn(cod, "\n")] = '\0';
-                buscarProduto(cod);
+                buscarProduto(cod, M, tabelaHash);
                 break;
             }
             case 3: {
@@ -508,13 +491,13 @@ int main() {
                 printf("Digite o codigo da peca: ");
                 fgets(cod, sizeof(cod), stdin);
                 cod[strcspn(cod, "\n")] = '\0';
-                excluirProduto(cod);
+                excluirProduto(cod, M, tabelaHash);
                 break;
             }
             case 4: {
                 printf("\n======================\n EXIBIR ESTATISTICAS\n======================\n");
 
-                estatiticasTabela();
+                estatiticasTabela(M, tabelaHash);
                 break;
             }
             case 5: {
@@ -526,13 +509,13 @@ int main() {
                 char *nomeArquivo = malloc(100 * sizeof(char));
                 fgets(nomeArquivo, 100, stdin);
                 nomeArquivo[strcspn(nomeArquivo, "\n")] = '\0'; 
-                importarDeCSV(nomeArquivo);
+                importarDeCSV(nomeArquivo, M, tabelaHash);
                 break;
             }
             case 6: {
                 printf("\n======================\n SALVAR TABELA EM CSV\n======================\n");
 
-                exportarParaCSV("tabelaTechParts.csv");
+                exportarParaCSV("tabelaTechParts.csv", M, tabelaHash);
                 break;
             }
             case 7: {
@@ -564,6 +547,20 @@ int main() {
                 }
 
                 selectFuncaoHash = novaFuncao;
+
+                if(selectFuncaoHash == 0) {
+                    printf("Funcao de hash alterada para Multiplicacao.\n");
+                    reHashSimples(selectFuncaoHash, M, tabelaHash);
+
+                } 
+                if (selectFuncaoHash == 1) {
+                    printf("Funcao de hash alterada para Divisao.\n");
+                    reHashSimples(selectFuncaoHash, M, tabelaHash);
+                }
+                if(selectFuncaoHash == 2){
+                    reHashSimples(selectFuncaoHash, M, tabelaHash);
+                }
+
                 printf("Funcao de hash alterada com sucesso! (%d)\n", selectFuncaoHash);
                 break;
             }
