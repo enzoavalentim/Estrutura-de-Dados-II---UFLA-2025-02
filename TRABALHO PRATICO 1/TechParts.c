@@ -303,11 +303,6 @@ void estatiticasTabela(int M, Produto* tabelaHash[]) {
     printf("Maior lista (colisoes): %d\n", maiorTamanho);
 }
 
-void reHashSimples(int selectFuncaoHashNovo, int M, Produto* tabelaHash[]) {
-
-    fatorDeCarga(M, tabelaHash); 
-
-}
 
 void reHashCompleto(int selectFuncaoHashNovo){
 
@@ -388,6 +383,27 @@ Produto** criarHash(int M) {
     return tabelaHash;
 }
 
+Produto** reHashSimples(int selectFuncaoHashNovo, int M, Produto** tabelaHash) {
+    Produto** novaTabela = criarHash(M);
+
+    for (int i = 0; i < M; i++) {
+        Produto* atual = tabelaHash[i];
+        while (atual) {
+            Produto* proximo = atual->prox;
+
+            int novoIndice = calcHash(atual->cod, M);
+            atual->prox = novaTabela[novoIndice];
+            novaTabela[novoIndice] = atual;
+
+            atual = proximo;
+        }
+    }
+
+    free(tabelaHash); 
+    printf("Rehash simples concluido com sucesso!\n");
+
+    return novaTabela;
+}
 
 
 int main() {
@@ -527,6 +543,7 @@ int main() {
                 printf("Selecione a funcao de hash desejada:\n");
                 printf("[0] Multiplicacao\n");
                 printf("[1] Divisao\n");
+                printf("[2] Dobra\n");
 
                 while (1) {
                     printf("Digite a opcao desejada: ");
@@ -550,15 +567,19 @@ int main() {
 
                 if(selectFuncaoHash == 0) {
                     printf("Funcao de hash alterada para Multiplicacao.\n");
-                    reHashSimples(selectFuncaoHash, M, tabelaHash);
+                    tabelaHash = reHashSimples(selectFuncaoHash, M, tabelaHash);
+                    imprimirHash(M, tabelaHash);
 
                 } 
                 if (selectFuncaoHash == 1) {
                     printf("Funcao de hash alterada para Divisao.\n");
-                    reHashSimples(selectFuncaoHash, M, tabelaHash);
+                    tabelaHash = reHashSimples(selectFuncaoHash, M, tabelaHash);
+                    imprimirHash(M, tabelaHash);
                 }
                 if(selectFuncaoHash == 2){
-                    reHashSimples(selectFuncaoHash, M, tabelaHash);
+                    printf("Funcao de hash alterada para Dobra.\n");
+                    tabelaHash = reHashSimples(selectFuncaoHash, M, tabelaHash);
+                    imprimirHash(M, tabelaHash);
                 }
 
                 printf("Funcao de hash alterada com sucesso! (%d)\n", selectFuncaoHash);
