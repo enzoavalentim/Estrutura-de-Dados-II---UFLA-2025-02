@@ -3,6 +3,7 @@
 #include <string.h>
 #include <locale.h>
 #include <ctype.h>
+#include <stdbool.h>
             
 #define maxNome 60
 #define maxCod 20
@@ -250,13 +251,6 @@ double fatorDeCarga(int M, Produto* tabelaHash[]) {
 
     double carga = (double)n / (double)M;
 
-    if (carga > 0.75) {
-        printf("Fator de carga: %.2f - Fazendo Rehash Completo! \n", carga);
-        reHashCompleto(selectFuncaoHash);
-    } else {
-        printf("Fator de carga: %.2f\n", carga);
-    }
-
     return carga;
 
 
@@ -275,7 +269,8 @@ void estatiticasTabela(int M, Produto* tabelaHash[]) {
     }
     printf("Numero de elementos (n): %d\n", n);
 
-    fatorDeCarga(M, tabelaHash); 
+    double carga = fatorDeCarga(M, tabelaHash); 
+    printf("Fator de carga (n/m): %.2f\n", carga);
 
     int bucketsUtilizados = 0;
     int bucketMaisCheio = -1;
@@ -303,10 +298,6 @@ void estatiticasTabela(int M, Produto* tabelaHash[]) {
     printf("Maior lista (colisoes): %d\n", maiorTamanho);
 }
 
-
-void reHashCompleto(int selectFuncaoHashNovo){
-
-}
 
 void importarDeCSV(char* nomeArquivo, int M, Produto* tabelaHash[]) {
 
@@ -404,6 +395,41 @@ Produto** reHashSimples(int selectFuncaoHashNovo, int M, Produto** tabelaHash) {
 
     return novaTabela;
 }
+
+bool ehPrimo(int n) {
+    if (n < 2) return false;
+    for (int i = 2; i * i <= n; i++) {
+        if (n % i == 0) return false;
+    }
+    return true;
+}
+
+
+Produto** reHashCompleto(int selectFuncaoHashNovo, int M, int novoM, Produto** tabelaHash) {
+
+    Produto** novaTabela = criarHash(novoM);
+
+    for (int i = 0; i < M; i++) {
+        Produto* atual = tabelaHash[i];
+        while (atual) {
+            Produto* proximo = atual->prox;
+
+    
+            int novoIndice = calcHash(atual->cod, novoM);
+
+            atual->prox = novaTabela[novoIndice];
+            novaTabela[novoIndice] = atual;
+
+            atual = proximo;
+        }
+    }
+
+    free(tabelaHash);  
+
+    printf("Rehash completo concluído com sucesso! Novo tamanho: %d\n", novoM);
+    return novaTabela;
+}
+
 
 
 int main() {
@@ -568,17 +594,71 @@ int main() {
                 if(selectFuncaoHash == 0) {
                     printf("Funcao de hash alterada para Multiplicacao.\n");
                     tabelaHash = reHashSimples(selectFuncaoHash, M, tabelaHash);
+                    double carga = fatorDeCarga(M, tabelaHash);   
+
+                    if(carga > 0.75) {
+                        printf("Fator de carga: %.2f - Fazendo Rehash Completo! \n", carga);
+
+                        int novoM = M * 2;
+                        novoM++;             
+                        
+                        while (!ehPrimo(novoM)) {
+                            novoM++;
+                        }
+
+                        tabelaHash = reHashCompleto(selectFuncaoHash, M, novoM, tabelaHash);
+                        M = novoM;
+                    } else {
+                        printf("Fator de carga: %.2f\n", carga);
+                    }
+
                     imprimirHash(M, tabelaHash);
 
                 } 
                 if (selectFuncaoHash == 1) {
                     printf("Funcao de hash alterada para Divisao.\n");
                     tabelaHash = reHashSimples(selectFuncaoHash, M, tabelaHash);
+                    double carga = fatorDeCarga(M, tabelaHash);   
+
+                    if(carga > 0.75) {
+                        printf("Fator de carga: %.2f - Fazendo Rehash Completo! \n", carga);
+                        
+                        int novoM = M * 2;
+                        novoM++;             
+                        
+                        while (!ehPrimo(novoM)) {
+                            novoM++;
+                        }
+
+                        tabelaHash = reHashCompleto(selectFuncaoHash, M, novoM, tabelaHash);
+                        M = novoM;
+                    } else {
+                        printf("Fator de carga: %.2f\n", carga);
+                    }
+
                     imprimirHash(M, tabelaHash);
                 }
                 if(selectFuncaoHash == 2){
                     printf("Funcao de hash alterada para Dobra.\n");
                     tabelaHash = reHashSimples(selectFuncaoHash, M, tabelaHash);
+                    double carga = fatorDeCarga(M, tabelaHash);   
+
+                    if(carga > 0.75) {
+                        printf("Fator de carga: %.2f - Fazendo Rehash Completo! \n", carga);
+                        
+                        int novoM = M * 2;
+                        novoM++;             
+                        
+                        while (!ehPrimo(novoM)) {
+                            novoM++;
+                        }
+
+                        tabelaHash = reHashCompleto(selectFuncaoHash, M, novoM, tabelaHash);
+                        M = novoM;
+                    } else {
+                        printf("Fator de carga: %.2f\n", carga);
+                    }
+
                     imprimirHash(M, tabelaHash);
                 }
 
