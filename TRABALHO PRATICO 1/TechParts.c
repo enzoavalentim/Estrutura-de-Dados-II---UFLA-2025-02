@@ -223,21 +223,47 @@ void imprimirMenu(){
 }
 
 
-int calcHash(char* cod, int M){
-    long int codTratado = tratamentoCodigo(cod);
-    
-    if (selectFuncaoHash == 0) {
-        double A = 0.618; 
+int calcHash(char* cod, int M) {
+    long int codTratado = tratamentoCodigo(cod);  
+
+    if (selectFuncaoHash == 0) {  
+
+        double A = 0.618;
         double fracionaria = fmod(codTratado * A, 1.0);
         int indice = (unsigned int)(M * fracionaria);
         return indice;
 
+    } else if (selectFuncaoHash == 1) {  
         
-    } else {
         int indice = codTratado % M;
         return indice;
+
+    } else if (selectFuncaoHash == 2) {  
+        
+        char buffer[50];
+        sprintf(buffer, "%ld", codTratado); 
+
+        long soma = 0;
+        int bloco = 2;  
+
+        int len = strlen(buffer);
+        for (int i = 0; i < len; i += bloco) {
+            char temp[10];
+            int j;
+
+            for (j = 0; j < bloco && (i+j) < len; j++) {
+                temp[j] = buffer[i+j];
+            }
+            temp[j] = '\0';
+
+            soma += atol(temp);
+        }
+
+        return (int)(soma % M);
     }
+    return -1;
 }
+
 
 double fatorDeCarga(int M, Produto* tabelaHash[]) {
     int n = 0;
@@ -326,8 +352,6 @@ void importarDeCSV(char* nomeArquivo, int M, Produto* tabelaHash[]) {
     }
 
     fclose(arquivo);
-
-    imprimirHash(M, tabelaHash);
     return 0;
 }
 
@@ -426,10 +450,9 @@ Produto** reHashCompleto(int selectFuncaoHashNovo, int M, int novoM, Produto** t
 
     free(tabelaHash);  
 
-    printf("Rehash completo concluído com sucesso! Novo tamanho: %d\n", novoM);
+    printf("Rehash completo concluido com sucesso! Novo tamanho: %d\n", novoM);
     return novaTabela;
 }
-
 
 
 int main() {
@@ -513,6 +536,25 @@ int main() {
                 }
 
                 inserirNovoProduto(cod, nome, quantEstoque, precoUnitario, indice, M, tabelaHash);
+
+                double carga = fatorDeCarga(M, tabelaHash);   
+
+                if(carga > 0.75) {
+                    printf("Fator de carga: %.2f - Fazendo Rehash Completo! \n", carga);
+
+                    int novoM = M * 2;
+                    novoM++;             
+                        
+                    while (!ehPrimo(novoM)) {
+                        novoM++;
+                    }
+
+                    tabelaHash = reHashCompleto(selectFuncaoHash, M, novoM, tabelaHash);
+                    M = novoM;
+                } else {
+                    printf("Fator de carga: %.2f\n", carga);
+                }
+
                 imprimirHash(M, tabelaHash);
                 break;
             }
@@ -552,6 +594,25 @@ int main() {
                 fgets(nomeArquivo, 100, stdin);
                 nomeArquivo[strcspn(nomeArquivo, "\n")] = '\0'; 
                 importarDeCSV(nomeArquivo, M, tabelaHash);
+
+                double carga = fatorDeCarga(M, tabelaHash);   
+
+                if(carga > 0.75) {
+                    printf("Fator de carga: %.2f - Fazendo Rehash Completo! \n", carga);
+
+                    int novoM = M * 2;
+                    novoM++;             
+                        
+                    while (!ehPrimo(novoM)) {
+                        novoM++;
+                    }
+
+                    tabelaHash = reHashCompleto(selectFuncaoHash, M, novoM, tabelaHash);
+                    M = novoM;
+                } else {
+                    printf("Fator de carga: %.2f\n", carga);
+                }
+
                 break;
             }
             case 6: {
@@ -581,8 +642,8 @@ int main() {
                         continue;
                     }
 
-                    if (novaFuncao < 0 || novaFuncao > 1) {
-                        printf("Opcao invalida! Digite 0 ou 1.\n");
+                    if (novaFuncao < 0 || novaFuncao > 2) {
+                        printf("Opcao invalida! Digite 0, 1 ou 2.\n");
                         continue;
                     }
 
