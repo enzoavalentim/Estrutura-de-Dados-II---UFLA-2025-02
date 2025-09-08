@@ -58,54 +58,30 @@ char* removeCaracterEspecial(const char* cod) {
 long int tratamentoCodigo(char* cod) {
     char* codTratado = removeCaracterEspecial(cod);
 
-    char saida[maxCod];         
-    saida[0] = '\0';        
+    long int resultado = 0;
+    int primo = 2;  
 
     for (int i = 0; codTratado[i] != '\0'; i++) {
-        char c = codTratado[i];
+        unsigned char c = codTratado[i];
 
-        if (isalpha((unsigned char)c)) {
-            char buffer[5];  
-            snprintf(buffer, sizeof(buffer), "%d", (int)c); 
-            if (strlen(saida) + strlen(buffer) < sizeof(saida))
-                strcat(saida, buffer);
-        } else {
-            char buffer[2] = {c, '\0'};  
-            if (strlen(saida) + 1 < sizeof(saida))
-                strcat(saida, buffer);
-        }
+        resultado = (resultado * primo + (int)c);
     }
-    
-    long int resultado = strtol(saida, NULL, 10);
+
+    free(codTratado); 
     return resultado;
 }
 
-int verificaProdutoExistente(const char* cod, int M, Produto* tabelaHash[]) {
+int verificaProdutoExistente(const char* cod, int M, Produto* tabelaHash[], int indice) {
 
     long int codTratado = tratamentoCodigo(cod);
-    
-    double A = 0.618; 
-    double fracionaria = fmod(codTratado * A, 1.0);
-    int indiceMulplicacao = (unsigned int)(M * fracionaria);
-    
-    int indiceDivisao = codTratado % M;
-        
 
-    Produto* atualMultplicacao = tabelaHash[indiceMulplicacao];
-    Produto* atualDivisao = tabelaHash[indiceDivisao];
-
-    while (atualMultplicacao != NULL) {
-        if (strcmp(atualMultplicacao->cod, cod) == 0) {
+    Produto* atual = tabelaHash[indice];
+   
+    while (atual != NULL) {
+        if (strcmp(atual->cod, cod) == 0) {
             return 1;  
         }
-        atualMultplicacao = atualMultplicacao->prox;
-    }
-
-    while (atualDivisao != NULL) {
-        if (strcmp(atualDivisao->cod, cod) == 0) {
-            return 1;  
-        }
-        atualDivisao = atualDivisao->prox;
+        atual = atual->prox;
     }
 
     return 0;  
@@ -154,9 +130,9 @@ void inserirNovoProduto(const char* cod, const char* nome, int quantidade, doubl
         return;
     }
 
-    int prodJacadastrado = verificaProdutoExistente(cod, M, tabelaHash);
+    int prodJacadastrado = verificaProdutoExistente(cod, M, tabelaHash, indice);
     if (prodJacadastrado == 1) {
-        printf("Codigo %s ja cadastrado. Volte ao cadastro de pecas e tente novamente.\n", cod);
+        printf("\nCodigo %s ja cadastrado. Volte ao cadastro de pecas e tente novamente.\n", cod);
         return;
     }
 
@@ -222,7 +198,6 @@ void imprimirMenu(){
     printf("\nDigite a opcao desejada:");
 }
 
-
 int calcHash(char* cod, int M) {
     long int codTratado = tratamentoCodigo(cod);  
 
@@ -263,7 +238,6 @@ int calcHash(char* cod, int M) {
     }
     return -1;
 }
-
 
 double fatorDeCarga(int M, Produto* tabelaHash[]) {
     int n = 0;
@@ -323,7 +297,6 @@ void estatiticasTabela(int M, Produto* tabelaHash[]) {
     printf("Numero de buckets utilizados: %d (%.2lf%%)\n", bucketsUtilizados, (bucketsUtilizados * 100) / (M * 1.0));
     printf("Maior lista (colisoes): %d\n", maiorTamanho);
 }
-
 
 void importarDeCSV(char* nomeArquivo, int M, Produto* tabelaHash[]) {
 
@@ -428,7 +401,6 @@ bool ehPrimo(int n) {
     return true;
 }
 
-
 Produto** reHashCompleto(int selectFuncaoHashNovo, int M, int novoM, Produto** tabelaHash) {
 
     Produto** novaTabela = criarHash(novoM);
@@ -453,7 +425,6 @@ Produto** reHashCompleto(int selectFuncaoHashNovo, int M, int novoM, Produto** t
     printf("Rehash completo concluido com sucesso! Novo tamanho: %d\n", novoM);
     return novaTabela;
 }
-
 
 int main() {
     setlocale(LC_ALL, "Portuguese_Brazil");
@@ -612,6 +583,8 @@ int main() {
                 } else {
                     printf("Fator de carga: %.2f\n", carga);
                 }
+
+                imprimirHash(M, tabelaHash);
 
                 break;
             }
