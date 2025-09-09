@@ -153,13 +153,16 @@ void buscarProduto(const char* cod, int M, Produto* tabelaHash[]) {
         
 
     Produto* atual = tabelaHash[indice];
+    int i = 0;
 
     while (atual != NULL) {
         if (strcmp(atual->cod, cod) == 0) {
             printf("\nProduto encontrado: \nCodigo: %s \nNome: %s \nQuantidade: %d \nPreco: %.2f\n", atual->cod, atual->nome, atual->quantidade, atual->preco);
+            printf("Numero de comparacoes: %d\n", i);
             return ;
         }
         atual = atual->prox;
+        i++;
     }
 
     printf("Produto %s nao encontrado na tabela.\n", cod);
@@ -451,8 +454,12 @@ int main() {
                 
                 if (selectFuncaoHash == 0) {
                     printf("Funcao de hash atual: Multiplicacao\n");
-                } else {
+                } 
+                if (selectFuncaoHash == 1){
                     printf("Funcao de hash atual: Divisao\n");
+                }
+                else if (selectFuncaoHash == 2){
+                    printf("Funcao de hash atual: Dobra\n");
                 }
 
                 char nome[maxNome];
@@ -674,6 +681,7 @@ int main() {
                 }
                 if(selectFuncaoHash == 2){
                     printf("Funcao de hash alterada para Dobra.\n");
+                     printf("Função %d", selectFuncaoHash);
                     tabelaHash = reHashSimples(selectFuncaoHash, M, tabelaHash);
                     double carga = fatorDeCarga(M, tabelaHash);   
 
