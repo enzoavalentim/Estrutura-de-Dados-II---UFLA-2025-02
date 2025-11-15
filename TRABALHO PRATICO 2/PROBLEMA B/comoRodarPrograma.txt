@@ -1,0 +1,2 @@
+COMPILAR: gcc -O2 -std=c11 -Wall -Wextra -o ProblemaB.exe ProblemaB.c
+RODAR: Get-Content exemplo_B.in | .\ProblemaB.exe > exemplo_B.out
